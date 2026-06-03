@@ -4,7 +4,9 @@ import json
 import os
 import secrets
 import signal
+import socket
 import subprocess
+import urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -14,6 +16,8 @@ MUSIC_DIR = os.environ.get("MUSIC_DIR", "./music")
 ALSA_DEV = os.environ.get("ALSA_DEVICE", "plughw:1,0")
 PASSWORD = os.environ.get("PLAYER_PASSWORD", "")
 AUDIO_SCALE = int(os.environ.get("AUDIO_SCALE", 65536))
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 # Sessions actives : token -> True
 sessions = set()
@@ -142,6 +146,35 @@ def is_authenticated(headers):
     if not PASSWORD:
         return True
     return get_session_token(headers) in sessions
+
+
+# ---------------------------------------------------------------------------
+# Telegram
+# ---------------------------------------------------------------------------
+
+
+def get_local_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(1)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"
+
+
+def send_telegram(message):
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = json.dumps({"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "HTML"}).encode()
+    try:
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(req, timeout=5)
+    except Exception:
+        pass
 
 
 # ---------------------------------------------------------------------------
@@ -631,10 +664,20 @@ if __name__ == "__main__":
     else:
         print(f"⚠️  Pas de mot de passe — définir PLAYER_PASSWORD pour sécuriser")
     httpd = HTTPServer(("0.0.0.0", PORT), Handler)
+    local_ip = get_local_ip()
+    msg = (
+        f"🎵 <b>DevQuest Player</b> démarré\n"
+        f"🌐 IP : {local_ip}:{PORT}\n"
+        f"🔊 Sortie : {ALSA_DEV}\n"
+        f"📁 Musique : {MUSIC_DIR}"
+    )
+    send_telegram(msg)
     print(f"🎵 Pi Zero Player démarré sur http://0.0.0.0:{PORT}")
     print(f"📁 Dossier musique : {MUSIC_DIR}")
     print(f"🔊 Sortie ALSA     : {ALSA_DEV}")
     print(f"📢 Amplification   : {AUDIO_SCALE} (max 65536)")
+    if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:
+        print(f"📨 Notification Telegram envoyée")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

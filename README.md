@@ -69,12 +69,12 @@ Ouvrir `http://<IP_DU_PI>` dans un navigateur.
 
 | Méthode | Route | Description |
 |---------|-------|-------------|
-| GET | `/api/status` | État actuel du lecteur |
+| GET | `/api/status` | État, fichier en cours, volume |
 | GET | `/api/list` | Liste des MP3 disponibles |
 | POST | `/api/play` | Lire un fichier `{"file": "mon.mp3"}` |
 | POST | `/api/stop` | Arrêter la lecture |
 | POST | `/api/pause` | Pause / Reprendre |
-| POST | `/api/volume` | Volume ALSA `{"volume": 80}` |
+| POST | `/api/volume` | Volume (0-100) via mpg123 `{"volume": 80}` |
 
 #### Exemples curl
 
@@ -108,9 +108,23 @@ curl -X POST http://pi.local/api/volume \
 | `PORT` | `80` | Port du serveur |
 | `MUSIC_DIR` | `./music` | Dossier contenant les MP3 |
 | `ALSA_DEVICE` | `plughw:1,0` | Périphérique ALSA de sortie |
+| `AUDIO_SCALE` | `65536` | Amplification logicielle mpg123 (max 65536) |
+| `PLAYER_PASSWORD` | `""` (désactivé) | Mot de passe pour l'interface |
+| `TELEGRAM_BOT_TOKEN` | `""` (désactivé) | Token du bot Telegram |
+| `TELEGRAM_CHAT_ID` | `""` (désactivé) | Chat ID destinataire Telegram |
 
 ```bash
 MUSIC_DIR=/home/pi/musique ALSA_DEVICE=plughw:2,0 sudo python3 server.py
+```
+
+### Notification Telegram au démarrage
+
+Si `TELEGRAM_BOT_TOKEN` et `TELEGRAM_CHAT_ID` sont définis, le serveur envoie un message avec l'IP locale et le port au démarrage.
+
+```bash
+TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234ghIkl... \
+TELEGRAM_CHAT_ID=987654321 \
+sudo python3 server.py
 ```
 
 ---
@@ -142,6 +156,8 @@ Environment=MUSIC_DIR=/home/pi/player/music
 Environment=ALSA_DEVICE=plughw:1,0
 Environment=PLAYER_PASSWORD=monmotdepasse
 Environment=PORT=80
+# Environment=TELEGRAM_BOT_TOKEN=123456:ABC-DEF...
+# Environment=TELEGRAM_CHAT_ID=987654321
 
 [Install]
 WantedBy=multi-user.target
