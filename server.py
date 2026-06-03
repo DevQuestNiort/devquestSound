@@ -13,6 +13,7 @@ PORT = int(os.environ.get("PORT", 80))
 MUSIC_DIR = os.environ.get("MUSIC_DIR", "./music")
 ALSA_DEV = os.environ.get("ALSA_DEVICE", "plughw:1,0")
 PASSWORD = os.environ.get("PLAYER_PASSWORD", "")
+AUDIO_SCALE = int(os.environ.get("AUDIO_SCALE", 65536))
 
 # Sessions actives : token -> True
 sessions = set()
@@ -165,7 +166,7 @@ def play_file(file_path):
         return {"ok": False, "error": f"Fichier introuvable : {file_path}"}
     stop_player()
     proc = subprocess.Popen(
-        ["mpg123", "-q", "-a", ALSA_DEV, file_path],
+        ["mpg123", "-q", "-a", ALSA_DEV, "--scale", str(AUDIO_SCALE), file_path],
         stdin=subprocess.DEVNULL,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -626,6 +627,7 @@ if __name__ == "__main__":
     print(f"🎵 Pi Zero Player démarré sur http://0.0.0.0:{PORT}")
     print(f"📁 Dossier musique : {MUSIC_DIR}")
     print(f"🔊 Sortie ALSA     : {ALSA_DEV}")
+    print(f"📢 Amplification   : {AUDIO_SCALE} (max 65536)")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
