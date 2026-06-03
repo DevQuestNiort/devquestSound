@@ -238,41 +238,78 @@ def build_page_html():
         """<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>DevQuest Player</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0d0d0f;color:#e8e8e8;font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px 16px 48px}
-header{display:flex;align-items:center;justify-content:space-between;max-width:960px;margin:0 auto 28px;padding-bottom:18px;border-bottom:1px solid #1e1e24}
-header h1{font-size:18px;font-weight:600;letter-spacing:.3px}
-.logout{font-size:12px;color:#555;text-decoration:none;padding:6px 12px;border:1px solid #2a2a30;border-radius:6px;cursor:pointer;background:none;color:#888}
+body{background:#0d0d0f;color:#e8e8e8;font-family:'Inter',system-ui,sans-serif;min-height:100vh;
+     padding:16px 12px 90px;-webkit-tap-highlight-color:transparent}
+header{display:flex;align-items:center;justify-content:space-between;max-width:960px;margin:0 auto 20px;
+       padding-bottom:14px;border-bottom:1px solid #1e1e24}
+header h1{font-size:16px;font-weight:600;letter-spacing:.3px}
+.logout{font-size:12px;padding:6px 12px;border:1px solid #2a2a30;border-radius:6px;
+        cursor:pointer;background:none;color:#888;white-space:nowrap}
 .logout:hover{color:#ccc;border-color:#444}
-main{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
-.section-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#555;margin-bottom:10px;padding-left:2px;display:flex;align-items:center;gap:8px}
+main{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.section-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+               color:#555;margin-bottom:8px;padding-left:2px;display:flex;align-items:center;gap:8px}
 .section-label::after{content:'';flex:1;height:1px;background:#1e1e24}
-.btn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
-.btn-card{background:#16161a;border:1px solid #1e1e24;border-radius:14px;padding:18px 20px;cursor:pointer;text-align:left;transition:border-color .15s,background .15s;position:relative;overflow:hidden}
-.btn-card:hover{background:#1c1c22;border-color:#333}
+.btn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.btn-card{background:#16161a;border:1px solid #1e1e24;border-radius:14px;padding:16px 18px;
+          cursor:pointer;text-align:left;transition:border-color .15s,background .15s,transform .1s;
+          position:relative;overflow:hidden;-webkit-user-select:none;user-select:none;
+          -webkit-touch-callout:none}
+.btn-card:active{transform:scale(0.98)}
+@media(hover:hover){.btn-card:hover{background:#1c1c22;border-color:#333}}
 .btn-card.active{border-color:var(--accent);background:#1a1a20}
 .btn-card.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
-.btn-card .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:5px;margin-bottom:12px;letter-spacing:.5px}
-.btn-card .card-row{display:flex;align-items:flex-start;gap:12px}
-.btn-card .icon{font-size:26px;line-height:1;flex-shrink:0;margin-top:2px}
-.btn-card .card-body{flex:1;min-width:0}
-.btn-card .card-title{font-size:16px;font-weight:600;color:#e8e8e8;margin-bottom:4px}
-.btn-card .card-hint{font-size:12px;color:#555;font-family:monospace}
-.btn-card .count-pill{position:absolute;top:14px;right:14px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;border:1px solid #2a2a30;color:#555}
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 8px;
+       border-radius:5px;margin-bottom:10px;letter-spacing:.5px}
+.card-row{display:flex;align-items:flex-start;gap:12px}
+.icon{font-size:24px;line-height:1;flex-shrink:0;margin-top:1px}
+.card-body{flex:1;min-width:0}
+.card-title{font-size:15px;font-weight:600;color:#e8e8e8;margin-bottom:3px}
+.card-hint{font-size:11px;color:#555;font-family:monospace}
+.count-pill{position:absolute;top:12px;right:12px;font-size:11px;font-weight:700;
+            padding:3px 8px;border-radius:6px;border:1px solid #2a2a30;color:#555}
 .btn-card.active .count-pill{color:var(--accent);border-color:var(--accent)}
-.dots{display:flex;gap:5px;margin-top:14px}
-.dot{width:8px;height:8px;border-radius:50%;background:#2a2a30}
-.dot.active{background:var(--accent)}
-#now-playing{position:fixed;bottom:0;left:0;right:0;background:#111118;border-top:1px solid #1e1e24;padding:12px 24px;display:flex;align-items:center;gap:16px;font-size:13px;color:#666;transition:opacity .3s}
-#now-playing.visible{color:#e8e8e8}
-#now-playing .np-file{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:12px;color:#888;font-family:monospace}
-#now-playing .np-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#444;flex-shrink:0}
-#now-playing.visible .np-label{color:#666}
-.stop-btn{background:#1e1e24;border:none;border-radius:8px;color:#888;font-size:12px;padding:8px 14px;cursor:pointer;flex-shrink:0}
-.stop-btn:hover{background:#2a2a30;color:#ccc}
+.dots{display:flex;gap:5px;margin-top:12px}
+.dot{width:7px;height:7px;border-radius:50%;background:#2a2a30}
+.dot.on{background:var(--accent)}
+/* now playing bar */
+#bar{position:fixed;bottom:0;left:0;right:0;background:#111118;border-top:1px solid #1e1e24;
+     padding:0 12px;padding-bottom:env(safe-area-inset-bottom);z-index:100}
+.bar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;height:60px}
+.np-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+          color:#333;flex-shrink:0;width:58px}
+.bar-on .np-label{color:#555}
+.np-file{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+         font-size:11px;color:#444;font-family:monospace}
+.bar-on .np-file{color:#888}
+/* volume */
+.vol-wrap{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.vol-icon{font-size:14px;cursor:pointer;user-select:none;padding:4px}
+#vol-sl{-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;
+         background:#2a2a30;outline:none;cursor:pointer;width:70px}
+#vol-sl::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+  width:16px;height:16px;border-radius:50%;background:#e8e8e8;cursor:pointer}
+#vol-sl::-moz-range-thumb{width:16px;height:16px;border-radius:50%;
+  background:#e8e8e8;border:none;cursor:pointer}
+#vol-pct{font-size:10px;color:#444;font-family:monospace;min-width:26px;text-align:right}
+.stop-btn{background:#1e1e24;border:none;border-radius:8px;color:#777;
+          font-size:18px;width:36px;height:36px;cursor:pointer;flex-shrink:0;
+          display:flex;align-items:center;justify-content:center}
+.stop-btn:active{background:#2a2a30}
+/* mobile: stack volume below on very small screens */
+@media(max-width:400px){
+  .vol-wrap{display:none}
+  #bar{padding-bottom:calc(env(safe-area-inset-bottom) + 2px)}
+}
+@media(max-width:520px){
+  #vol-sl{width:55px}
+  .btn-grid{grid-template-columns:1fr}
+  .card-title{font-size:14px}
+}
 </style>
 </head>
 <body>
@@ -281,39 +318,46 @@ main{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
   <button class="logout" onclick="logout()">Déconnexion</button>
 </header>
 <main id="main">Chargement…</main>
-<div id="now-playing">
-  <span class="np-label" id="np-label">EN PAUSE</span>
-  <span class="np-file" id="np-file">—</span>
-  <button class="stop-btn" onclick="stop()">⏹ Stop</button>
+<div id="bar">
+  <div class="bar-inner">
+    <span class="np-label" id="np-label">ARRÊTÉ</span>
+    <span class="np-file" id="np-file">—</span>
+    <div class="vol-wrap">
+      <span class="vol-icon" id="vol-icon" onclick="toggleMute()">🔊</span>
+      <input type="range" id="vol-sl" min="0" max="100" value="80" step="1" oninput="onVol(this.value)">
+      <span id="vol-pct">80%</span>
+    </div>
+    <button class="stop-btn" onclick="stop()" title="Stop">⏹</button>
+  </div>
 </div>
 <script>
-const CATS = """
+const CATS="""
         + cats_js
         + """;
-let currentId = null;
+let currentId=null,volTimer=null,lastVol=80,muted=false,volBefore=80;
 
-function render() {
-  const main = document.getElementById('main');
-  main.innerHTML = '';
-  CATS.forEach(cat => {
-    const sec = document.createElement('div');
-    const color = cat.color;
-    sec.innerHTML = '<div class="section-label" style="color:'+color+'">'+cat.label+'</div>';
-    const grid = document.createElement('div');
-    grid.className = 'btn-grid';
-    cat.buttons.forEach(btn => {
-      const accent = btn.color || color;
-      const card = document.createElement('div');
-      card.className = 'btn-card';
-      card.id = 'card-'+btn.id;
-      card.style.setProperty('--accent', accent);
-      const count = btn.files.length;
-      const r = Math.floor(parseInt(accent.slice(1,3),16));
-      const g = Math.floor(parseInt(accent.slice(3,5),16));
-      const b = Math.floor(parseInt(accent.slice(5,7),16));
-      const badgeBg = `rgba(${r},${g},${b},0.15)`;
-      card.innerHTML =
-        '<div class="badge" style="background:'+badgeBg+';color:'+accent+'">'+count+' / '+count+'</div>'+
+function render(){
+  const main=document.getElementById('main');
+  main.innerHTML='';
+  CATS.forEach(cat=>{
+    const sec=document.createElement('div');
+    const color=cat.color;
+    sec.innerHTML='<div class="section-label" style="color:'+color+'">'+cat.label+'</div>';
+    const grid=document.createElement('div');
+    grid.className='btn-grid';
+    cat.buttons.forEach(btn=>{
+      const accent=btn.color||color;
+      const card=document.createElement('div');
+      card.className='btn-card';
+      card.id='card-'+btn.id;
+      card.style.setProperty('--accent',accent);
+      const count=btn.files.length;
+      const rv=parseInt(accent.slice(1,3),16);
+      const gv=parseInt(accent.slice(3,5),16);
+      const bv=parseInt(accent.slice(5,7),16);
+      const bg='rgba('+rv+','+gv+','+bv+',0.15)';
+      card.innerHTML=
+        '<div class="badge" style="background:'+bg+';color:'+accent+'">'+count+' / '+count+'</div>'+
         '<div class="card-row">'+
           '<div class="icon">'+btn.icon+'</div>'+
           '<div class="card-body">'+
@@ -323,7 +367,7 @@ function render() {
         '</div>'+
         '<span class="count-pill">'+count+'</span>'+
         '<div class="dots">'+btn.files.map(()=>'<div class="dot"></div>').join('')+'</div>';
-      card.onclick = () => playRandom(btn);
+      card.onclick=()=>playRandom(btn);
       grid.appendChild(card);
     });
     sec.appendChild(grid);
@@ -331,64 +375,66 @@ function render() {
   });
 }
 
-async function playRandom(btn) {
-  const file = btn.files[Math.floor(Math.random() * btn.files.length)];
-  currentId = btn.id;
-  document.querySelectorAll('.btn-card').forEach(c => c.classList.remove('active'));
-  const card = document.getElementById('card-'+btn.id);
-  if(card) card.classList.add('active');
-  await api('POST', '/api/play', {file});
+async function playRandom(btn){
+  const file=btn.files[Math.floor(Math.random()*btn.files.length)];
+  currentId=btn.id;
+  document.querySelectorAll('.btn-card').forEach(c=>c.classList.remove('active'));
+  const card=document.getElementById('card-'+btn.id);
+  if(card)card.classList.add('active');
+  await api('POST','/api/play',{file});
   refreshStatus();
 }
 
-async function stop() {
-  await api('POST', '/api/stop');
-  currentId = null;
-  document.querySelectorAll('.btn-card').forEach(c => c.classList.remove('active'));
+async function stop(){
+  await api('POST','/api/stop');
+  currentId=null;
+  document.querySelectorAll('.btn-card').forEach(c=>c.classList.remove('active'));
   refreshStatus();
 }
 
-async function logout() {
-  await fetch('/api/logout', {method:'POST'});
-  location.href = '/login';
+function onVol(val){
+  val=parseInt(val);lastVol=val;muted=(val===0);
+  document.getElementById('vol-pct').textContent=val+'%';
+  document.getElementById('vol-icon').textContent=val===0?'🔇':val<50?'🔉':'🔊';
+  clearTimeout(volTimer);
+  volTimer=setTimeout(()=>api('POST','/api/volume',{volume:val}),300);
 }
 
-async function api(method, path, body) {
-  const r = await fetch(path, {
-    method,
-    headers: body ? {'Content-Type':'application/json'} : {},
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if(r.status === 401) { location.href='/login'; return {}; }
+function toggleMute(){
+  const sl=document.getElementById('vol-sl');
+  if(muted){sl.value=volBefore;onVol(volBefore);}
+  else{volBefore=lastVol;sl.value=0;onVol(0);}
+  muted=!muted;
+}
+
+async function logout(){await fetch('/api/logout',{method:'POST'});location.href='/login';}
+
+async function api(method,path,body){
+  const r=await fetch(path,{method,
+    headers:body?{'Content-Type':'application/json'}:{},
+    body:body?JSON.stringify(body):undefined});
+  if(r.status===401){location.href='/login';return{};}
   return r.json();
 }
 
-async function refreshStatus() {
-  const s = await api('GET', '/api/status');
-  const np = document.getElementById('now-playing');
-  const npFile = document.getElementById('np-file');
-  const npLabel = document.getElementById('np-label');
-  if(s.isPlaying) {
-    np.classList.add('visible');
-    npFile.textContent = s.currentFile ? s.currentFile.split('/').pop() : '—';
-    npLabel.textContent = s.isPaused ? 'EN PAUSE' : 'EN COURS';
-  } else {
-    np.classList.remove('visible');
-    npFile.textContent = '—';
-    npLabel.textContent = 'ARRÊTÉ';
-    currentId = null;
-    document.querySelectorAll('.btn-card').forEach(c => c.classList.remove('active'));
-  }
+async function refreshStatus(){
+  const s=await api('GET','/api/status');
+  const bar=document.getElementById('bar');
+  document.getElementById('np-file').textContent=s.isPlaying&&s.currentFile
+    ?s.currentFile.split('/').pop():'—';
+  document.getElementById('np-label').textContent=
+    s.isPlaying?(s.isPaused?'EN PAUSE':'EN COURS'):'ARRÊTÉ';
+  if(s.isPlaying)bar.classList.add('bar-on');
+  else{bar.classList.remove('bar-on');currentId=null;
+    document.querySelectorAll('.btn-card').forEach(c=>c.classList.remove('active'));}
 }
 
-document.addEventListener('keydown', e => {
-  CATS.forEach(cat => cat.buttons.forEach(btn => {
-    if(e.key === btn.key) playRandom(btn);
-  }));
+document.addEventListener('keydown',e=>{
+  CATS.forEach(cat=>cat.buttons.forEach(btn=>{if(e.key===btn.key)playRandom(btn);}));
 });
 
 render();
-setInterval(refreshStatus, 2000);
+setInterval(refreshStatus,2000);
 refreshStatus();
 </script>
 </body>
