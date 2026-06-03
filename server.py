@@ -23,6 +23,7 @@ state = {
     "currentFile": None,
     "isPlaying": False,
     "isPaused": False,
+    "volume": 80,
 }
 
 CATEGORIES = [
@@ -165,8 +166,9 @@ def play_file(file_path):
     if not os.path.isfile(file_path):
         return {"ok": False, "error": f"Fichier introuvable : {file_path}"}
     stop_player()
+    scale = int(AUDIO_SCALE * state["volume"] / 100)
     proc = subprocess.Popen(
-        ["mpg123", "-q", "-a", ALSA_DEV, "--scale", str(AUDIO_SCALE), file_path],
+        ["mpg123", "-q", "-a", ALSA_DEV, "--scale", str(scale), file_path],
         stdin=subprocess.DEVNULL,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -325,8 +327,8 @@ main{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
     <span class="np-file" id="np-file">—</span>
     <div class="vol-wrap">
       <span class="vol-icon" id="vol-icon" onclick="toggleMute()">🔊</span>
-      <input type="range" id="vol-sl" min="0" max="100" value="80" step="1" oninput="onVol(this.value)">
-      <span id="vol-pct">80%</span>
+      <input type="range" id="vol-sl" min="0" max="100" value="''' + str(state["volume"]) + '''" step="1" oninput="onVol(this.value)">
+      <span id="vol-pct">''' + str(state["volume"]) + '''%</span>
     </div>
     <button class="stop-btn" onclick="stop()" title="Stop">⏹</button>
   </div>
@@ -428,6 +430,12 @@ async function refreshStatus(){
   if(s.isPlaying)bar.classList.add('bar-on');
   else{bar.classList.remove('bar-on');currentId=null;
     document.querySelectorAll('.btn-card').forEach(c=>c.classList.remove('active'));}
+  if(s.volume!==undefined){
+    lastVol=s.volume;
+    document.getElementById('vol-sl').value=s.volume;
+    document.getElementById('vol-pct').textContent=s.volume+'%';
+    document.getElementById('vol-icon').textContent=s.volume===0?'🔇':s.volume<50?'🔉':'🔊';
+  }
 }
 
 document.addEventListener('keydown',e=>{
@@ -506,6 +514,7 @@ class Handler(BaseHTTPRequestHandler):
                     "isPlaying": state["isPlaying"],
                     "isPaused": state["isPaused"],
                     "currentFile": state["currentFile"],
+                    "volume": state["volume"],
                 }
             )
 
@@ -603,11 +612,9 @@ class Handler(BaseHTTPRequestHandler):
             vol = body.get("volume")
             if vol is None or not (0 <= int(vol) <= 100):
                 return self.send_json({"error": "Volume entre 0 et 100"}, 400)
-            subprocess.Popen(
-                ["amixer", "-D", ALSA_DEV, "sset", "Speaker", f"{int(vol)}%"],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
+            state["volume"] = int(vol)
+            if state["isPlaying"] and state["currentFile"]:
+                play_file(state["currentFile"])
             return self.send_json({"ok": True, "volume": int(vol)})
 
         self.send_json({"error": "Route introuvable"}, 404)
