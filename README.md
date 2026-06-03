@@ -205,3 +205,21 @@ dtoverlay=audremap,pins_18_19=on   # GPIO 18 & 19
 sudo raspi-config
 # → System → Audio → HDMI
 ```
+
+
+
+## Configurer wi-fi
+
+wpa_supplicant.conf
+
+```
+country=US
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+network={
+  ssid="YOURSSID"
+  scan_ssid=1
+  psk="YOURPASSWORD"
+  key_mgmt=WPA-PSK
+}
+```

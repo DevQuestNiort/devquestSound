@@ -604,7 +604,7 @@ class Handler(BaseHTTPRequestHandler):
             if vol is None or not (0 <= int(vol) <= 100):
                 return self.send_json({"error": "Volume entre 0 et 100"}, 400)
             subprocess.Popen(
-                ["amixer", "-D", ALSA_DEV, "sset", "PCM", f"{int(vol)}%"],
+                ["amixer", "-D", ALSA_DEV, "sset", "Speaker", f"{int(vol)}%"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
