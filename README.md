@@ -1,34 +1,61 @@
-# 🎵 Pi Zero MP3 Player
+# 🎵 DevQuest Sound Player
 
-Serveur HTTP léger en **Python 3** pour lire des MP3 sur la sortie son d'un Raspberry Pi Zero 1W.  
+Serveur HTTP léger en **Python 3** pour lire des MP3 sur la sortie son d'un Raspberry Pi.  
 Aucune dépendance Python — uniquement la bibliothèque standard.
 
 ---
 
-## Prérequis sur le Pi Zero
+## Prérequis
 
 ```bash
 # 1. Installer mpg123 (lecteur MP3 ultra-léger)
 sudo apt update && sudo apt install -y mpg123
 
-# 2. Vérifier que python3 est disponible (déjà présent sur Raspbian)
+# 2. Vérifier que python3 est disponible
 python3 --version
 
-# 3. Vérifier que l'audio fonctionne sur l'adaptateur USB
+# 3. Vérifier que l'audio fonctionne
 aplay -D plughw:1,0 /usr/share/sounds/alsa/Front_Center.wav
 ```
 
-> **Sortie audio :** Le Pi Zero 1W n'a pas de jack audio natif.
-> Options :
-> - **USB audio** (adaptateur ~3€) → `plughw:1,0` ✅ recommandé
-> - **PWM GPIO** (jack DIY sur GPIO 12/13 ou 18/19) → activer avec `dtoverlay=audremap`
-> - **HDMI** (si connecté à un écran avec son)
->
-> Voir la section *Configuration audio* ci-dessous.
+> **Sortie audio :** Sur Pi Zero 1W (pas de jack audio natif), utiliser un adaptateur USB,
+> PWM GPIO ou HDMI. Voir la section *Configuration audio* ci-dessous.
 
 ---
 
 ## Installation
+
+### Installation rapide (recommandée)
+
+Depuis le Pi, une seule commande suffit — le script clone le dépôt puis lance l'interactif :
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/DevQuestNiort/devquestSound/main/install.sh | sudo bash
+```
+
+### Installation depuis un clone
+
+```bash
+# Copier tout le projet sur le Pi
+scp -r . pi@<IP_DU_PI>:~/player/
+
+# Sur le Pi
+cd ~/player
+sudo ./install.sh
+```
+
+Le script `install.sh` vous guide pas à pas :
+
+1. **Mot de passe** – authentification facultative de l'interface web
+2. **Telegram** – token et chat ID (optionnels, pour notification au démarrage)
+3. **Dossier musique** – chemin vers les MP3
+4. **Sortie audio** – détection automatique des cartes ALSA + test sonore
+5. **Port** – port d'écoute du serveur
+6. **Utilisateur** – utilisateur système qui exécutera le service
+
+Le script crée le service systemd, l'active au démarrage et le lance immédiatement.
+
+### Installation manuelle
 
 ```bash
 # Copier le serveur sur le Pi
@@ -51,7 +78,7 @@ sudo python3 server.py
 ```
 
 ```
-🎵 Pi Zero Player démarré sur http://0.0.0.0:80
+🎵 DevQuest Sound Player démarré sur http://0.0.0.0:80
 📁 Dossier musique : ./music
 🔊 Sortie ALSA     : plughw:1,0
 ```
@@ -129,57 +156,12 @@ sudo python3 server.py
 
 ---
 
-## Installer comme service systemd
+## Service systemd
 
-Le service permet au player de démarrer automatiquement au boot et de redémarrer en cas d'erreur.
+Le service permet au player de démarrer automatiquement au boot et de redémarrer en cas d'erreur.  
+Le script `install.sh` le crée, l'active et le lance automatiquement.
 
-### 1. Créer le fichier de service
-
-```bash
-sudo nano /etc/systemd/system/player.service
-```
-
-Coller le contenu suivant (adapter `WorkingDirectory` si besoin) :
-
-```ini
-[Unit]
-Description=Pi Zero MP3 Player
-After=network.target sound.target
-
-[Service]
-User=root
-WorkingDirectory=/home/pi/player
-ExecStart=/usr/bin/python3 server.py
-Restart=on-failure
-RestartSec=5
-Environment=MUSIC_DIR=/home/pi/player/music
-Environment=ALSA_DEVICE=plughw:1,0
-Environment=PLAYER_PASSWORD=monmotdepasse
-Environment=PORT=80
-# Environment=TELEGRAM_BOT_TOKEN=123456:ABC-DEF...
-# Environment=TELEGRAM_CHAT_ID=987654321
-
-[Install]
-WantedBy=multi-user.target
-```
-
-### 2. Activer et démarrer le service
-
-```bash
-# Recharger systemd pour prendre en compte le nouveau fichier
-sudo systemctl daemon-reload
-
-# Activer le service au démarrage
-sudo systemctl enable player
-
-# Démarrer immédiatement
-sudo systemctl start player
-
-# Vérifier que tout fonctionne
-sudo systemctl status player
-```
-
-### 3. Commandes utiles
+Commandes utiles :
 
 ```bash
 # Voir les logs en temps réel
@@ -195,9 +177,44 @@ sudo systemctl stop player
 sudo systemctl disable player
 ```
 
+### Configuration manuelle
+
+Si vous préférez créer le service à la main :
+
+```bash
+sudo nano /etc/systemd/system/player.service
+```
+
+```ini
+[Unit]
+Description=DevQuest Sound Player
+After=network.target sound.target
+
+[Service]
+User=root
+WorkingDirectory=/home/pi/player
+ExecStart=/usr/bin/python3 server.py
+Restart=on-failure
+RestartSec=5
+Environment=PORT=80
+Environment=MUSIC_DIR=/home/pi/player/music
+Environment=ALSA_DEVICE=plughw:1,0
+Environment=AUDIO_SCALE=65536
+# Environment=PLAYER_PASSWORD=monmotdepasse
+# Environment=TELEGRAM_BOT_TOKEN=123456:ABC-DEF...
+# Environment=TELEGRAM_CHAT_ID=987654321
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload && sudo systemctl enable --now player
+```
+
 ---
 
-## Configuration audio Pi Zero
+## Configuration audio
 
 ### Option 1 – Adaptateur USB audio (recommandé)
 ```bash

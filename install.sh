@@ -1,7 +1,35 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PLAYER_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_URL="https://github.com/DevQuestNiort/devquestSound.git"
+INSTALL_DIR="/home/pi/player"
+
+# --- Clone du dépôt si mode standalone (curl | bash) ---
+if [ "${1:-}" != "--continue" ] && [ ! -f "${0%/*}/server.py" ]; then
+  echo "=== Installation du DevQuest Sound Player ==="
+  echo "Mode standalone détecté — clonage du dépôt…"
+  echo ""
+
+  if ! command -v git &>/dev/null; then
+    echo "Installation de git…"
+    apt update && apt install -y git
+  fi
+
+  if [ -d "$INSTALL_DIR" ]; then
+    echo "Le répertoire $INSTALL_DIR existe déjà, mise à jour…"
+    cd "$INSTALL_DIR"
+    git pull
+  else
+    git clone "$REPO_URL" "$INSTALL_DIR"
+    cd "$INSTALL_DIR"
+  fi
+
+  echo ""
+  echo "Lancement de l'installation interactive…"
+  exec bash "$INSTALL_DIR/install.sh" --continue
+fi
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SERVICE_FILE="/etc/systemd/system/player.service"
 
 echo "=== Installation du DevQuest Sound Player ==="
@@ -19,7 +47,7 @@ read -rp "Token du bot Telegram (optionnel, laisser vide pour désactiver) : " T
 read -rp "Chat ID Telegram (optionnel, laisser vide pour désactiver) : " TELEGRAM_CHAT_ID
 
 # --- MUSIC_DIR ---
-DEFAULT_MUSIC_DIR="$PLAYER_DIR/music"
+DEFAULT_MUSIC_DIR="$SCRIPT_DIR/music"
 read -rp "Répertoire des fichiers audio [${DEFAULT_MUSIC_DIR}] : " MUSIC_DIR
 MUSIC_DIR="${MUSIC_DIR:-$DEFAULT_MUSIC_DIR}"
 
@@ -60,7 +88,7 @@ if command -v mpg123 &>/dev/null || command -v speaker-test &>/dev/null; then
       echo "Test avec speaker-test (bip sonore, Ctrl+C pour arrêter)..."
       speaker-test -c 2 -l 1 -D "$ALSA_DEVICE" 2>/dev/null && echo " OK" || echo " Échec du test"
     elif command -v mpg123 &>/dev/null; then
-      TEST_FILE=$(find "$PLAYER_DIR/music" -name '*.mp3' 2>/dev/null | head -1)
+      TEST_FILE=$(find "$SCRIPT_DIR/music" -name '*.mp3' 2>/dev/null | head -1)
       if [ -n "$TEST_FILE" ]; then
         echo "Test avec mpg123 sur \"$(basename "$TEST_FILE")\"..."
         mpg123 -q -a "$ALSA_DEVICE" "$TEST_FILE" && echo " OK" || echo " Échec du test"
@@ -93,7 +121,7 @@ SERVICE_USER="${SERVICE_USER:-root}"
 
 echo ""
 echo "=== Récapitulatif ==="
-echo "  Répertoire d'installation : $PLAYER_DIR"
+echo "  Répertoire d'installation : $SCRIPT_DIR"
 echo "  Musique                   : $MUSIC_DIR"
 echo "  Périphérique ALSA         : $ALSA_DEVICE"
 echo "  Port                      : $PORT"
@@ -121,8 +149,8 @@ After=network.target sound.target
 
 [Service]
 User=${SERVICE_USER}
-WorkingDirectory=${PLAYER_DIR}
-ExecStart=/usr/bin/env python3 ${PLAYER_DIR}/server.py
+WorkingDirectory=${SCRIPT_DIR}
+ExecStart=/usr/bin/env python3 ${SCRIPT_DIR}/server.py
 Restart=on-failure
 RestartSec=5
 Environment=PORT=${PORT}
